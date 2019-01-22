@@ -20,4 +20,11 @@ public interface ProjectService {
 	 */
 	long queryProjectCount();
 	
+	/**
+	 * 新增项目
+	 * @param project
+	 * @return
+	 */
+	Long addProject(Project project);
+	
 }

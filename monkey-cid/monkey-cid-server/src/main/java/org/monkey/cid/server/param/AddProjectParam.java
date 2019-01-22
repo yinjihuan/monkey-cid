@@ -1,9 +1,9 @@
-package org.monkey.cid.server.dto;
+package org.monkey.cid.server.param;
 
 import lombok.Data;
 
 @Data
-public class ProjectDto {
+public class AddProjectParam {
 
 	private String name;
 	

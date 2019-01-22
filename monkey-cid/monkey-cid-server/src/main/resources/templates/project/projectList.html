@@ -8,7 +8,7 @@
     	<#include "../index/header.html">
    		<#include "../index/sidebar.html">
    		<div id="app" class="content">
-   			 <div style="float:right;border:0px solid red;width:500px;"><el-button type="primary" @click="dialogAddFormVisible=true">新增项目</el-button></div>
+   			 <div style="float:right;border:0px solid red;width:500px;"><el-button type="primary" @click="showDialogAddForm('add',null)">新增项目</el-button></div>
 	     	 <el-table :data="tableData" style="width: 100%">
 			    <el-table-column
 			      label="项目名"
@@ -62,13 +62,13 @@
 			          @click="showDialogPublishForm(scope.row)">发布</el-button>
 			        <el-button
 			          size="mini"
-			          @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+			          @click="showDialogAddForm('edit',scope.row)">编辑</el-button>
 			      </template>
 			    </el-table-column>
 			  </el-table>
 			  
 			  
-			   <el-dialog title="新增项目" :visible.sync="dialogAddFormVisible">
+			   <el-dialog :title="dialogTitle" :visible.sync="dialogAddFormVisible">
 				  <el-form :model="addForm" :rules="addFormRules" ref="addForm">
 				     <el-form-item label="项目名" label-width="120px" prop="name">
 					    <el-input v-model="addForm.name" style="width:50%"></el-input>
@@ -125,6 +125,7 @@
     el: '#app',
     data: function() {
     	return {
+    		page: 1,
             tableData: [{
               name: 'fangjia-district-service',
               chineseName: '小区服务',
@@ -162,9 +163,13 @@
            	  name: [{ required: true, message: '请输入项目名', trigger: 'blur' }],
            	  chineseName: [{ required: true, message: '请输入中文名', trigger: 'blur' }],
               gitUrl: [{ required: true, message: '请输入Git地址', trigger: 'blur' }]
-            }
+            },
+            dialogTitle: '新增项目'
                
         }
+    },
+    mounted: function() {
+    	this.queryProjectList();
     },
     methods:{
     	// 显示发布窗口
@@ -173,14 +178,61 @@
     		this.dialogPublishFormVisible = true;
     	},
     	saveProject: function() {
-    		this.$refs['addForm'].validate((valid) => {
+    		var that = this;
+    		that.$refs['addForm'].validate((valid) => {
    	           if (valid) {
-   	             alert('submit!');
+   	        	  axios.post('/rest/project/add', that.addForm)
+   	        	  .then(function (response) {
+   	        	    if (response.data.code == 200) {
+   	        	    	that.$message({
+   	        	          message: '新增项目成功',
+   	        	          type: 'success'
+   	        	        });
+   	        	    	that.dialogAddFormVisible = false;
+   	        	    	that.queryProjectList();
+   	        	    }
+   	        	  })
+   	        	  .catch(function (error) {
+   	        	    console.log(error);
+   	        	  });
    	           } else {
-   	             console.log('error submit!!');
    	             return false;
    	           }
     	    });
+    	},
+    	queryProjectList: function() {
+    		var that = this;
+    		axios.get('/rest/project/list', {
+    		    params: {
+    		      page: that.page
+    		    }
+    		})
+   		    .then(function (response) {
+   		    	if (response.data.code == 200) {
+   		    		that.tableData = response.data.data.list;
+   		    	} else {
+   		    		that.$message.error(response.data.message);
+   		    	}
+   		    })
+   		    .catch(function (error) {
+   		    	if (error.response) {
+   		     	    that.$message.error(error.response.data.error);
+   		        } else {
+   		        	that.$message.error("网络异常");
+   		        }
+   		    });
+    	},
+    	showDialogAddForm: function(type, data) {
+    		if (type == 'add') {
+    			this.dialogAddFormVisible = true;
+    			this.addForm = {};
+    			this.dialogTitle = "新增项目";
+    		} else {
+    			this.dialogAddFormVisible = true;
+    			this.addForm = data;
+        		this.dialogTitle = "编辑项目";
+    		}
+    		
     	}
     }
   })

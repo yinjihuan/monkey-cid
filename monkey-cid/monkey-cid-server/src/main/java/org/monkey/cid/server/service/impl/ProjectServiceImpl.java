@@ -18,4 +18,9 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		return super.count();
 	}
 
+	@Override
+	public Long addProject(Project project) {
+		return (Long) super.save(project);
+	}
+
 }
