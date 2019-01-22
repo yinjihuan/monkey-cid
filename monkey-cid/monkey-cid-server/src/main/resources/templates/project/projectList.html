@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+    <div class="wrapper">
+    	<#include "../index/header.html">
+   		<#include "../index/sidebar.html">
+   		<div id="app" class="content">
+   			 <div style="float:right;border:0px solid red;width:500px;"><el-button type="primary" @click="dialogAddFormVisible=true">新增项目</el-button></div>
+	     	 <el-table :data="tableData" style="width: 100%">
+			    <el-table-column
+			      label="项目名"
+			      width="280">
+			      <template slot-scope="scope">
+			        <i></i>
+			        <span style="margin-left: 10px">{{ scope.row.name }}</span>
+			      </template>
+			    </el-table-column>
+			    <el-table-column
+			      label="项目中文名"
+			      width="280">
+			      <template slot-scope="scope">
+			        <i></i>
+			        <span style="margin-left: 10px">{{ scope.row.chineseName }}</span>
+			      </template>
+			    </el-table-column>
+			    <el-table-column
+			      label="Git地址"
+			      width="280">
+			      <template slot-scope="scope">
+			        <i></i>
+			        <span style="margin-left: 10px">{{ scope.row.gitUrl }}</span>
+			      </template>
+			    </el-table-column>
+			    <el-table-column
+			      label="最新发布时间"
+			      width="280">
+			      <template slot-scope="scope">
+			        <i></i>
+			        <span style="margin-left: 10px">{{ scope.row.pushTime }}</span>
+			      </template>
+			    </el-table-column>
+			    <el-table-column
+			      label="当前运行实例"
+			      width="180">
+			      <template slot-scope="scope">
+			        <el-popover trigger="hover" placement="top">
+			          <p>111.11.11.11:8080</p>
+			          <p>111.11.11.11:8080</p>
+			          <div slot="reference" class="name-wrapper">
+			            <el-tag size="medium">{{ scope.row.instanceCount }}</el-tag>
+			          </div>
+			        </el-popover>
+			      </template>
+			    </el-table-column>
+			    <el-table-column label="操作">
+			      <template slot-scope="scope">
+			      	<el-button
+			          size="mini"
+			          @click="showDialogPublishForm(scope.row)">发布</el-button>
+			        <el-button
+			          size="mini"
+			          @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+			      </template>
+			    </el-table-column>
+			  </el-table>
+			  
+			  
+			   <el-dialog title="新增项目" :visible.sync="dialogAddFormVisible">
+				  <el-form :model="addForm" :rules="addFormRules" ref="addForm">
+				     <el-form-item label="项目名" label-width="120px" prop="name">
+					    <el-input v-model="addForm.name" style="width:50%"></el-input>
+					 </el-form-item>
+					 <el-form-item label="中文名" label-width="120px" prop="chineseName">
+					    <el-input v-model="addForm.chineseName" style="width:50%"></el-input>
+					 </el-form-item>
+					 <el-form-item label="Git地址" label-width="120px" prop="gitUrl">
+					    <el-input v-model="addForm.gitUrl" style="width:80%"></el-input>
+					 </el-form-item>
+				  </el-form>
+				  <div slot="footer" class="dialog-footer">
+				    <el-button @click="dialogAddFormVisible = false">取 消</el-button>
+				    <el-button type="primary" @click="saveProject">确 定</el-button>
+				  </div>
+			   </el-dialog>
+			   
+			  <el-dialog title="项目发布" :visible.sync="dialogPublishFormVisible">
+				  <el-form :model="publishForm">
+				    <el-form-item label="发布项目" label-width="120px">
+				      {{publishForm.publishProjectName}}
+				    </el-form-item>
+				    <el-form-item label="发布分支" label-width="120px">
+				      <el-select v-model="publishForm.publishBranch" filterable placeholder="请选择">
+					    <el-option
+					      v-for="item in publishForm.publishBranchList"
+					      :key="item.value"
+					      :label="item.label"
+					      :value="item.value">
+					    </el-option>
+					  </el-select>
+				    </el-form-item>
+				    <el-form-item label="发布机器" label-width="120px">
+				      <el-select v-model="publishForm.publishMachineList" filterable placeholder="请选择" multiple style="width:400px">
+					    <el-option
+					      v-for="item in publishForm.machineList"
+					      :key="item.value"
+					      :label="item.label"
+					      :value="item.value">
+					    </el-option>
+					  </el-select>
+				    </el-form-item>
+				  </el-form>
+				  <div slot="footer" class="dialog-footer">
+				    <el-button @click="dialogPublishFormVisible = false">取 消</el-button>
+				    <el-button type="primary" @click="dialogPublishFormVisible = false">确 定</el-button>
+				  </div>
+			   </el-dialog>
+	    </div>
+	    
+    </div>
+<script>
+  new Vue({
+    el: '#app',
+    data: function() {
+    	return {
+            tableData: [{
+              name: 'fangjia-district-service',
+              chineseName: '小区服务',
+              pushTime: '2019-12-12',
+              gitUrl: 'http://gitlab.fangjia.com',
+              instanceCount:3
+            }],
+            dialogPublishFormVisible: false,
+            dialogAddFormVisible: false,
+            publishForm: {
+            	publishProjectName:'',
+                publishBranch:'master',
+                publishBranchList:[{
+                	 value: 'master',
+                     label: 'master'
+                },{
+	               	 value: 'YF1.0',
+	                 label: 'YF1.0'
+            	}],
+            	publishMachineList:[],
+            	machineList:[{
+	               	 value: '192.168.10.11',
+	                 label: '192.168.10.11'
+	               },{
+	              	 value: '192.168.10.12',
+	                 label: '192.168.10.12'
+	           	}]
+            },
+            addForm: {
+            	name: '',
+            	chineseName: '',
+            	gitUrl: ''
+            },
+            addFormRules: {
+           	  name: [{ required: true, message: '请输入项目名', trigger: 'blur' }],
+           	  chineseName: [{ required: true, message: '请输入中文名', trigger: 'blur' }],
+              gitUrl: [{ required: true, message: '请输入Git地址', trigger: 'blur' }]
+            }
+               
+        }
+    },
+    methods:{
+    	// 显示发布窗口
+    	showDialogPublishForm: function(data) {
+    		console.log(data);
+    		this.dialogPublishFormVisible = true;
+    	},
+    	saveProject: function() {
+    		this.$refs['addForm'].validate((valid) => {
+   	           if (valid) {
+   	             alert('submit!');
+   	           } else {
+   	             console.log('error submit!!');
+   	             return false;
+   	           }
+    	    });
+    	}
+    }
+  })
+</script>
+</body>
+</html>
+

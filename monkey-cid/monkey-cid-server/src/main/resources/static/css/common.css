@@ -1,0 +1,77 @@
+*{margin:0;padding:0;}
+html,body,#app,.wrapper{
+    width:100%;
+    height:100%;
+    overflow: hidden;
+}
+.content{
+    background: none repeat scroll 0 0 #fff;
+    position: absolute;
+    left: 250px;
+    right: 0;
+    top: 70px;
+    bottom:0;
+    width: auto;
+    padding:40px;
+    box-sizing: border-box;
+    overflow-y: scroll;
+}
+.header {
+	position: relative;
+	box-sizing: border-box;
+	width: 100%;
+	height: 70px;
+	font-size: 22px;
+	line-height: 70px;
+	color: #fff;
+	background-color: #20a0ff;
+}
+
+.header .logo {
+	float: left;
+	width: 250px;
+	text-align: center;
+}
+
+.user-info {
+	float: right;
+	padding-right: 50px;
+	font-size: 16px;
+	color: #fff;
+}
+
+.user-info .el-dropdown-link {
+	position: relative;
+	display: inline-block;
+	padding-left: 50px;
+	color: #fff;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.user-info .user-logo {
+	position: absolute;
+	left: 0;
+	top: 15px;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+}
+
+.el-dropdown-menu__item {
+	text-align: center;
+}
+
+.sidebar {
+	display: block;
+	position: absolute;
+	width: 200px;
+	left: 0;
+	top: 70px;
+	bottom: 0;
+	background: #2E363F;
+}
+
+.sidebar>ul {
+	height: 100%;
+}
