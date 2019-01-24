@@ -1,4 +1,4 @@
-package org.monkey.cid.server.base;
+package org.monkey.cid.core.base;
 
 public enum ResponseCode {
 	/** 正确 **/

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.monkey.cid.server.base.Response;
-import org.monkey.cid.server.base.ResponseData;
+import org.monkey.cid.core.base.Response;
+import org.monkey.cid.core.base.ResponseData;
 import org.monkey.cid.server.dto.ProjectDto;
 import org.monkey.cid.server.param.AddProjectParam;
 import org.monkey.cid.server.param.EditProjectBranchParam;

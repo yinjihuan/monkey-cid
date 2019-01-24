@@ -1,4 +1,4 @@
-package org.monkey.cid.server.base;
+package org.monkey.cid.core.base;
 
 /**
  * REST API 返回数据工具类
