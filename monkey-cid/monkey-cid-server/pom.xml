@@ -40,6 +40,12 @@
 			<artifactId>mysql-connector-java</artifactId>
 		</dependency>
 		
+		<dependency>
+			<groupId>com.cxytiandi</groupId>
+			<artifactId>monkey-cid-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
 	</dependencies>
 	<repositories>
 		<repository>
@@ -47,4 +53,28 @@
 			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
+	
+	<build>
+		<plugins>
+			<!-- 打包插件 -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<executable>true</executable>
+					<mainClass>org.monkey.cid.server.MonkeyCidServerApp</mainClass>
+				</configuration>
+			</plugin>
+
+			<!-- 编译插件，指定JDK版本 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

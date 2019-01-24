@@ -16,4 +16,9 @@ public class RouteController {
 		return "/project/projectList";
 	}
 	
+	@GetMapping("/machine/list")
+	public String machineListPage() {
+		return "/machine/machineList";
+	}
+	
 }

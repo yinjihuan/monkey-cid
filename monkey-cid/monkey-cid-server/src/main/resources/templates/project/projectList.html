@@ -43,8 +43,8 @@
 			      </template>
 			    </el-table-column>
 			    <el-table-column
-			      label="当前运行实例"
-			      width="180">
+			      label="运行实例"
+			      width="100">
 			      <template slot-scope="scope">
 			        <el-popover trigger="hover" placement="top">
 			          <p>111.11.11.11:8080</p>
@@ -63,12 +63,15 @@
 			        <el-button
 			          size="mini"
 			          @click="showDialogAddForm('edit',scope.row)">编辑</el-button>
+		            <el-button
+			          size="mini"
+			          @click="showDialogBranchForm(scope.row)">分支</el-button>
 			      </template>
 			    </el-table-column>
 			  </el-table>
 			  
 			  
-			   <el-dialog :title="dialogTitle" :visible.sync="dialogAddFormVisible">
+			  <el-dialog :title="dialogTitle" :visible.sync="dialogAddFormVisible" center>
 				  <el-form :model="addForm" :rules="addFormRules" ref="addForm">
 				     <el-form-item label="项目名" label-width="120px" prop="name">
 					    <el-input v-model="addForm.name" style="width:50%"></el-input>
@@ -84,13 +87,31 @@
 				    <el-button @click="dialogAddFormVisible = false">取 消</el-button>
 				    <el-button type="primary" @click="saveProject">确 定</el-button>
 				  </div>
-			   </el-dialog>
+			  </el-dialog>
+			  
+			  <el-dialog title="分支管理" :visible.sync="dialogBranchFormVisible" center>
+				  <el-form>
+				     <el-form-item label="一行一个分支" label-width="120px" prop="name">
+					    <el-input
+						  type="textarea"
+						  :autosize="{ minRows: 10, maxRows: 20}"
+						  placeholder="请输入内容"
+						  v-model="branchs">
+						</el-input>
+					 </el-form-item>
+				  </el-form>
+				  <div slot="footer" class="dialog-footer">
+				    <el-button @click="dialogBranchFormVisible = false">取 消</el-button>
+				    <el-button type="primary" @click="saveBranch">确 定</el-button>
+				  </div>
+			  </el-dialog>
 			   
-			  <el-dialog title="项目发布" :visible.sync="dialogPublishFormVisible">
+			  <el-dialog title="项目发布" :visible.sync="dialogPublishFormVisible" fullscreen center>
 				  <el-form :model="publishForm">
 				    <el-form-item label="发布项目" label-width="120px">
 				      {{publishForm.publishProjectName}}
 				    </el-form-item>
+				    
 				    <el-form-item label="发布分支" label-width="120px">
 				      <el-select v-model="publishForm.publishBranch" filterable placeholder="请选择">
 					    <el-option
@@ -101,6 +122,7 @@
 					    </el-option>
 					  </el-select>
 				    </el-form-item>
+				    
 				    <el-form-item label="发布机器" label-width="120px">
 				      <el-select v-model="publishForm.publishMachineList" filterable placeholder="请选择" multiple style="width:400px">
 					    <el-option
@@ -111,10 +133,17 @@
 					    </el-option>
 					  </el-select>
 				    </el-form-item>
+				    
+				    <el-form-item label="实时日志" label-width="120px">
+				      <div style="height:500px;border:0px solid red;overflow-x:auto;overflow-y:auto;">
+				      	<pre  v-for="item in logs" >{{item}}</pre>
+				      </div>
+				    </el-form-item>
+				    
 				  </el-form>
 				  <div slot="footer" class="dialog-footer">
 				    <el-button @click="dialogPublishFormVisible = false">取 消</el-button>
-				    <el-button type="primary" @click="dialogPublishFormVisible = false">确 定</el-button>
+				    <el-button type="primary" @click="publishProject">确 定</el-button>
 				  </div>
 			   </el-dialog>
 	    </div>
@@ -129,12 +158,13 @@
             tableData: [{
               name: 'fangjia-district-service',
               chineseName: '小区服务',
-              pushTime: '2019-12-12',
-              gitUrl: 'http://gitlab.fangjia.com',
+              pushTime: "2019-12-12",
+              gitUrl: "http://gitlab.fangjia.com",
               instanceCount:3
             }],
             dialogPublishFormVisible: false,
             dialogAddFormVisible: false,
+            dialogBranchFormVisible: false,
             publishForm: {
             	publishProjectName:'',
                 publishBranch:'master',
@@ -155,6 +185,7 @@
 	           	}]
             },
             addForm: {
+            	id: '',
             	name: '',
             	chineseName: '',
             	gitUrl: ''
@@ -164,8 +195,11 @@
            	  chineseName: [{ required: true, message: '请输入中文名', trigger: 'blur' }],
               gitUrl: [{ required: true, message: '请输入Git地址', trigger: 'blur' }]
             },
-            dialogTitle: '新增项目'
-               
+            dialogTitle: "新增项目",
+            handleDataUri: "/rest/project/add",
+            logs: [],
+            branchs: '',
+            opId: ''
         }
     },
     mounted: function() {
@@ -174,14 +208,23 @@
     methods:{
     	// 显示发布窗口
     	showDialogPublishForm: function(data) {
-    		console.log(data);
+    		this.publishForm.publishProjectName = data.name;
     		this.dialogPublishFormVisible = true;
+    	},
+    	showDialogBranchForm: function(data) {
+    		this.dialogBranchFormVisible = true;
+    		this.opId = data.id;
+    		if (data.branchs != null) {
+    			this.branchs = data.branchs.replace(/,/g,"\n");
+    		} else {
+    			this.branchs = '';
+    		}
     	},
     	saveProject: function() {
     		var that = this;
     		that.$refs['addForm'].validate((valid) => {
    	           if (valid) {
-   	        	  axios.post('/rest/project/add', that.addForm)
+   	        	  axios.post(that.handleDataUri, that.addForm)
    	        	  .then(function (response) {
    	        	    if (response.data.code == 200) {
    	        	    	that.$message({
@@ -223,16 +266,73 @@
    		    });
     	},
     	showDialogAddForm: function(type, data) {
+    		console.log(data)
     		if (type == 'add') {
     			this.dialogAddFormVisible = true;
     			this.addForm = {};
     			this.dialogTitle = "新增项目";
+    			this.handleDataUri = "/rest/project/add";
     		} else {
     			this.dialogAddFormVisible = true;
     			this.addForm = data;
         		this.dialogTitle = "编辑项目";
+        		this.handleDataUri = "/rest/project/edit";
     		}
-    		
+    	},
+    	publishProject: function () {
+    		var that = this;
+    	    axios.post('/rest/project/publish', null)
+        	  .then(function (response) {
+        	    if (response.data.code == 200) {
+        	    	alert();
+        	    	//that.dialogPublishFormVisible = false;
+        	    	var logsInterval = setInterval(function(){
+        	    		that.queryPublishLogs();
+        	    	},1000);
+        	    }
+        	  })
+       	   .catch(function (error) {
+       	      console.log(error);
+       	   });
+    	},
+    	queryPublishLogs: function () {
+    	   var that = this;
+    	   axios.get('/rest/project/publish/logs', {
+    		    params: {
+    		      
+    		    }
+    	   })
+           .then(function (response) {
+        	    if (response.data.code == 200) {
+        	    	var list = response.data.data;
+        	    	that.logs = that.logs.concat(list);
+        	    }
+           })
+       	   .catch(function (error) {
+       	      console.log(error);
+       	   });
+    	},
+    	saveBranch: function () {
+    		var that = this;
+    		if(this.branchs != '') {
+    			var branchs = that.branchs.split("\n").join(',');
+	    		axios.post('/rest/project/branch', {branchs:branchs, projectId:that.opId})
+	          	.then(function (response) {
+	          	    if (response.data.code == 200) {
+	          	    	that.$message({
+   	        	          message: '操作成功',
+   	        	          type: 'success'
+   	        	        });
+	          	    	that.dialogBranchFormVisible = false;
+	          	    	that.queryProjectList();
+	          	    }
+	          	})
+	         	.catch(function (error) {
+	         	    console.log(error);
+	         	});
+    	    } else {
+    	    	that.dialogBranchFormVisible = false;
+    	    }
     	}
     }
   })

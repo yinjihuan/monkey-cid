@@ -1,11 +1,11 @@
 package org.monkey.cid.client;
 
-/**
- * Hello world!
- *
- */
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
 public class MonkeyCidClientApp {
 	public static void main(String[] args) {
-		System.out.println("Hello World!");
+		SpringApplication.run(MonkeyCidClientApp.class, args);
 	}
 }

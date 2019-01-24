@@ -1,4 +1,4 @@
-package org.monkey.cid.client;
+package org.monkey.cid.core;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -7,7 +7,7 @@ import junit.framework.TestSuite;
 /**
  * Unit test for simple App.
  */
-public class MonkeyCidClientAppTest 
+public class AppTest 
     extends TestCase
 {
     /**
@@ -15,7 +15,7 @@ public class MonkeyCidClientAppTest
      *
      * @param testName name of the test case
      */
-    public MonkeyCidClientAppTest( String testName )
+    public AppTest( String testName )
     {
         super( testName );
     }
@@ -25,7 +25,7 @@ public class MonkeyCidClientAppTest
      */
     public static Test suite()
     {
-        return new TestSuite( MonkeyCidClientAppTest.class );
+        return new TestSuite( AppTest.class );
     }
 
     /**

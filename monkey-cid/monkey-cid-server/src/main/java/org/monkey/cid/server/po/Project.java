@@ -31,4 +31,6 @@ public class Project {
 	@Field(value = "update_time", desc = "修改时间")
 	private Date updateTime;
 
+	@Field(value = "branchs", desc = "分支，多个逗号隔开")
+	private String branchs;
 }

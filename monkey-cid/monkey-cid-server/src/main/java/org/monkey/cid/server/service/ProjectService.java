@@ -27,4 +27,16 @@ public interface ProjectService {
 	 */
 	Long addProject(Project project);
 	
+	/**
+	 * 修改项目
+	 * @param project
+	 */
+	void updateProject(Project project);
+	
+	void updateBranch(String id, String branchs);
+	
+	void publishProject(Project project);
+	
+	List<String> queryPublishLogs();
+	
 }

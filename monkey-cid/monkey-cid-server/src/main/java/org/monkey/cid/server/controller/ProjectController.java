@@ -8,6 +8,7 @@ import org.monkey.cid.server.base.Response;
 import org.monkey.cid.server.base.ResponseData;
 import org.monkey.cid.server.dto.ProjectDto;
 import org.monkey.cid.server.param.AddProjectParam;
+import org.monkey.cid.server.param.EditProjectBranchParam;
 import org.monkey.cid.server.po.Project;
 import org.monkey.cid.server.service.ProjectService;
 import org.springframework.beans.BeanUtils;
@@ -37,6 +38,7 @@ public class ProjectController {
 		for (Project project : projectList) {
 			ProjectDto dto = new ProjectDto();
 			BeanUtils.copyProperties(project, dto);
+			dto.setId(project.getId().toString());
 			projectDtoList.add(dto);
 		}
 		PageBean<ProjectDto> data = new PageBean<ProjectDto>(start, limit, projectDtoList, total);
@@ -52,5 +54,33 @@ public class ProjectController {
 		project.setUpdateTime(addTime);
 		Long id = projectService.addProject(project);
 		return Response.ok(id.toString());
+	}
+	
+	@PostMapping("/project/edit")
+	public ResponseData<String> editProject(@RequestBody AddProjectParam param) {
+		Project project = new Project();
+		BeanUtils.copyProperties(param, project);
+		project.setId(Long.valueOf(param.getId()));
+		Date updateTime = new Date();
+		project.setUpdateTime(updateTime);
+		projectService.updateProject(project);
+		return Response.ok();
+	}
+	
+	@PostMapping("/project/publish")
+	public ResponseData<Boolean> publishProject() {
+		projectService.publishProject(null);
+		return Response.ok();
+	}
+	
+	@GetMapping("/project/publish/logs")
+	public ResponseData<List<String>> queryPublishLogs() {
+		return Response.ok(projectService.queryPublishLogs());
+	}
+	
+	@PostMapping("/project/branch")
+	public ResponseData<Boolean> editProjectBranch(@RequestBody EditProjectBranchParam param) {
+		projectService.updateBranch(param.getProjectId(), param.getBranchs());
+		return Response.ok();
 	}
 }
