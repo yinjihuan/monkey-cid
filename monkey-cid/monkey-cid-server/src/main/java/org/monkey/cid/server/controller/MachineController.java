@@ -1,18 +1,20 @@
 package org.monkey.cid.server.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.monkey.cid.core.base.Response;
 import org.monkey.cid.core.base.ResponseData;
 import org.monkey.cid.server.dto.MachineDto;
-import org.monkey.cid.server.dto.ProjectDto;
+import org.monkey.cid.server.param.AddMachineParam;
 import org.monkey.cid.server.po.Machine;
-import org.monkey.cid.server.po.Project;
 import org.monkey.cid.server.service.MachineService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -62,5 +64,27 @@ public class MachineController {
 		}
 		PageBean<MachineDto> data = new PageBean<MachineDto>(start, limit, machineDtoList, total);
 		return Response.ok(data);
+	}
+	
+	@PostMapping("/machine/add")
+	public ResponseData<String> addProject(@RequestBody AddMachineParam param) {
+		Machine machine = new Machine();
+		BeanUtils.copyProperties(param, machine);
+		Date addTime = new Date();
+		machine.setAddTime(addTime);
+		machine.setUpdateTime(addTime);
+		Long id = machineService.addMachine(machine);
+		return Response.ok(id.toString());
+	}
+	
+	@PostMapping("/machine/edit")
+	public ResponseData<String> editProject(@RequestBody AddMachineParam param) {
+		Machine machine = new Machine();
+		BeanUtils.copyProperties(param, machine);
+		machine.setId(Long.valueOf(param.getId()));
+		Date updateTime = new Date();
+		machine.setUpdateTime(updateTime);
+		machineService.updateMachine(machine);
+		return Response.ok();
 	}
 }
