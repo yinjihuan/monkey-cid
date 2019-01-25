@@ -13,7 +13,9 @@ public class NoticeServiceImpl implements NoticeService {
 	
 	@Override
 	public boolean deployProject() {
-		
+		String deployScriptPath = "/home/goojia/deploy_fangjia_youfang_service.sh";
+		logger.info("deployProject: {}", deployScriptPath);
+		LinuxCommandUtil.exec(deployScriptPath, null);
 		return false;
 	}
 

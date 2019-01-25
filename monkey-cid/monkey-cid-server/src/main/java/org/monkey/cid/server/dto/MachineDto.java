@@ -9,4 +9,10 @@ public class MachineDto {
 	
 	private String intranetIp;
 	
+	private String extranetIp;
+	
+	private String clientUrl;
+	
+	private String publishCatalog;
+	
 }

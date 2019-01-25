@@ -2,13 +2,14 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>项目管理</title>
 </head>
 <body>
     <div class="wrapper">
     	<#include "../index/header.html">
    		<#include "../index/sidebar.html">
    		<div id="app" class="content">
-   			 <div style="float:left;border:0px solid red;width:500px;"><el-button type="primary" @click="showDialogAddForm('add',null)">新增项目</el-button></div>
+   			 <div style="float:right;border:0px solid red;width:500px;"><el-button type="primary" @click="showDialogAddForm('add',null)">新增项目</el-button></div>
 	     	 <el-table :data="tableData" style="width: 100%">
 			    <el-table-column
 			      label="项目名"

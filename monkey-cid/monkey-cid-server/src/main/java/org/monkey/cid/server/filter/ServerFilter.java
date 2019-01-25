@@ -22,6 +22,8 @@ public class ServerFilter implements Filter {
 			throws IOException, ServletException {
 		HttpServletRequest req = (HttpServletRequest) request;
         String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        String uri = req.getRequestURI();
+        req.setAttribute("uri", uri);
         req.setAttribute("basePath", basePath);
 		chain.doFilter(request, response);
 	}

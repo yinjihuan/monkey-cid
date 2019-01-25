@@ -27,7 +27,9 @@ public class LinuxCommandUtil {
             String line;
             while ((line = br.readLine()) != null) {
             	logger.info(line);
-            	queue.add(line);
+            	if (queue != null) {
+            		queue.add(line);
+            	}
                 sb.append(line).append("\n");
             }
             br.close();

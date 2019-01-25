@@ -8,7 +8,7 @@
                   </el-submenu>
               </template>
               <template v-else>
-                  <el-menu-item :index="item.index">
+                  <el-menu-item :index="item.index" @click="router(item.index)">
                       <i :class="item.icon"></i>{{ item.title }}
                   </el-menu-item>
               </template>
@@ -28,23 +28,13 @@
             items: [
                 {
                     icon: 'el-icon-setting',
-                    index: '/home',
-                    title: '首页'
+                    index: '/project/list',
+                    title: '项目管理'
                 },
                 {
-                    icon: 'el-icon-menu',
-                    index: '2',
-                    title: '基础配置',
-                    subs: [
-                        {
-                            index: '/machine/list',
-                            title: '机器管理'
-                        },
-                        {
-                            index: '/project/list',
-                            title: '项目管理'
-                        }
-                    ]
+                    icon: 'el-icon-setting',
+                    index: '/machine/list',
+                    title: '机器管理'
                 }
             ]
         }

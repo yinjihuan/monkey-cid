@@ -55,6 +55,12 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 	@Override
 	public void publishProject(Project project) {
 		this.buildProject();
+		this.deployProject();
+	}
+	
+	private void deployProject() {
+		ResponseData resp = restTemplate.postForObject("http://192.168.0.222:3101/notice/deploy", null, ResponseData.class);
+		System.out.println("deployProject:" + resp.getCode());  
 	}
 	
 	private void buildProject() {
@@ -73,7 +79,7 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 			param.add("fileFolder", fileFolder);  
 			param.add("fileName", fileName); 
 			ResponseData resp = restTemplate.postForObject("http://192.168.0.222:3101/file/upload", param, ResponseData.class);  
-			System.out.println(resp.getCode());  
+			System.out.println("buildProject：" + resp.getCode());  
 		} catch (Exception e) {
 			logger.error("项目部署异常", e);
 		}
