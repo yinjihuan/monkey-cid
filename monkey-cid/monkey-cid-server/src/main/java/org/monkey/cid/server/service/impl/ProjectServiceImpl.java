@@ -1,18 +1,25 @@
 package org.monkey.cid.server.service.impl;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.monkey.cid.core.base.ResponseData;
 import org.monkey.cid.core.util.LinuxCommandUtil;
 import org.monkey.cid.server.po.Project;
 import org.monkey.cid.server.service.ProjectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import com.cxytiandi.jdbc.EntityService;
 
@@ -22,6 +29,9 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 	private Logger logger = LoggerFactory.getLogger(ProjectServiceImpl.class);
 	
 	private ConcurrentHashMap<String, ArrayBlockingQueue> logsMap = new ConcurrentHashMap<>();
+	
+	@Autowired
+	private RestTemplate restTemplate;
 	
 	public List<Project> queryProjectList(int start, int limit) {
 		return super.listForPage(start, limit);
@@ -54,6 +64,16 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		logsMap.put("yinjihuan", queue);
 		try {
 			LinuxCommandUtil.exec(command, queue);
+			String jarPath = "/home/goojia/build/viewstore/master.fangjia-youfang-service/fangjia-youfang-service/fangjia-youfang-service/target/fangjia-youfang-service-1.0.0.jar";
+			String fileFolder = "/home/goojia/publish/master/fangjia-youfang-service/2019-12-12";
+			String fileName = "fangjia-youfang-service-1.0.0.jar";
+			FileSystemResource resource = new FileSystemResource(new File(jarPath));  
+			MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();  
+			param.add("file", resource);  
+			param.add("fileFolder", fileFolder);  
+			param.add("fileName", fileName); 
+			ResponseData resp = restTemplate.postForObject("http://192.168.0.222:3101/file/upload", param, ResponseData.class);  
+			System.out.println(resp.getCode());  
 		} catch (Exception e) {
 			logger.error("项目部署异常", e);
 		}

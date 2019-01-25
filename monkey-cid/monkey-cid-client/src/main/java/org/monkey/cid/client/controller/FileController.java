@@ -1,8 +1,6 @@
 package org.monkey.cid.client.controller;
 
 import java.io.File;
-import java.io.IOException;
-
 import org.monkey.cid.core.base.Response;
 import org.monkey.cid.core.base.ResponseData;
 import org.slf4j.Logger;
@@ -19,22 +17,23 @@ public class FileController {
 
 	private Logger logger = LoggerFactory.getLogger(FileController.class);
 	
-	/**
-	 * 文件上传，上传编译好的代码，存放在服务器指定的位置
-	 * @param file
-	 * @param fileFullName 文件全称，包含磁盘路径
-	 * @return
-	 * @throws IOException
-	 */
 	@PostMapping("/file/upload")
-	public ResponseData<Void> fileUpload(@RequestParam(value = "file") MultipartFile file, String fileFullName) {
-		if (!StringUtils.hasText(fileFullName)) {
-			return Response.fail("fileFullName不能为空");
+	public ResponseData<Void> fileUpload(@RequestParam(value = "file") MultipartFile file, String fileFolder, String fileName) {
+		logger.info(fileFolder);
+		logger.info(fileName);
+		if (!StringUtils.hasText(fileFolder)) {
+			return Response.fail("fileFolder不能为空");
+		}
+		if (!StringUtils.hasText(fileName)) {
+			return Response.fail("fileName不能为空");
 		}
 		try {
 			byte[] bytes = file.getBytes();
-			File fileToSave = new File(fileFullName);
-			FileCopyUtils.copy(bytes, fileToSave);
+			File folder = new File(fileFolder);
+		    if (!folder.exists() && !folder.isDirectory()) {  
+		    	folder.mkdirs();  
+		    }  
+			FileCopyUtils.copy(bytes, new File(fileFolder + File.separator + fileName));
 		} catch (Exception e) {
 			logger.error("代码包上传异常", e);
 			return Response.fail("代码包上传异常：" + e.getMessage());
