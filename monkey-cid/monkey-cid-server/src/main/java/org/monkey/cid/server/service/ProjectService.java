@@ -2,6 +2,7 @@ package org.monkey.cid.server.service;
 
 import java.util.List;
 
+import org.monkey.cid.server.param.PublishProjectParam;
 import org.monkey.cid.server.po.Project;
 
 public interface ProjectService {
@@ -35,7 +36,7 @@ public interface ProjectService {
 	
 	void updateBranch(String id, String branchs);
 	
-	void publishProject(Project project);
+	void publishProject(PublishProjectParam param);
 	
 	List<String> queryPublishLogs();
 	

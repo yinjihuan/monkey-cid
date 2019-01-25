@@ -37,4 +37,9 @@ public class MachineServiceImpl extends EntityService<Machine> implements Machin
 		return super.list();
 	}
 
+	@Override
+	public Machine get(Long id) {
+		return super.getById("id", id);
+	}
+
 }

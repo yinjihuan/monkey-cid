@@ -33,4 +33,7 @@ public class Project {
 
 	@Field(value = "branchs", desc = "分支，多个逗号隔开")
 	private String branchs;
+	
+	@Field(value = "build_script", desc = "编译脚本")
+	private String buildScript;
 }

@@ -9,6 +9,7 @@ import org.monkey.cid.core.base.ResponseData;
 import org.monkey.cid.server.dto.ProjectDto;
 import org.monkey.cid.server.param.AddProjectParam;
 import org.monkey.cid.server.param.EditProjectBranchParam;
+import org.monkey.cid.server.param.PublishProjectParam;
 import org.monkey.cid.server.po.Project;
 import org.monkey.cid.server.service.ProjectService;
 import org.springframework.beans.BeanUtils;
@@ -68,8 +69,8 @@ public class ProjectController {
 	}
 	
 	@PostMapping("/project/publish")
-	public ResponseData<Boolean> publishProject() {
-		projectService.publishProject(null);
+	public ResponseData<Boolean> publishProject(@RequestBody PublishProjectParam param) {
+		projectService.publishProject(param);
 		return Response.ok();
 	}
 	

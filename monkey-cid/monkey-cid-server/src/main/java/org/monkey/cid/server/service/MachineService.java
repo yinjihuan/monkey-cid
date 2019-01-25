@@ -37,4 +37,11 @@ public interface MachineService {
 	 * @param machine
 	 */
 	void updateMachine(Machine machine);
+	
+	/**
+	 * 获取机器信息
+	 * @param id
+	 * @return
+	 */
+	Machine get(Long id);
 }

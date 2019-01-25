@@ -13,4 +13,6 @@ public class AddProjectParam {
 	
 	private String gitUrl;
 	
+	private String buildScript;
+	
 }
