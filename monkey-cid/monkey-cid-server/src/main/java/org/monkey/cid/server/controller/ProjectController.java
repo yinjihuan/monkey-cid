@@ -7,6 +7,7 @@ import java.util.List;
 import org.monkey.cid.core.base.Response;
 import org.monkey.cid.core.base.ResponseData;
 import org.monkey.cid.server.dto.ProjectDto;
+import org.monkey.cid.server.dto.PublishProjectDto;
 import org.monkey.cid.server.param.AddProjectParam;
 import org.monkey.cid.server.param.EditProjectBranchParam;
 import org.monkey.cid.server.param.PublishProjectParam;
@@ -69,9 +70,8 @@ public class ProjectController {
 	}
 	
 	@PostMapping("/project/publish")
-	public ResponseData<Boolean> publishProject(@RequestBody PublishProjectParam param) {
-		projectService.publishProject(param);
-		return Response.ok();
+	public ResponseData<PublishProjectDto> publishProject(@RequestBody PublishProjectParam param) {
+		return Response.ok(projectService.publishProject(param));
 	}
 	
 	@GetMapping("/project/publish/logs")

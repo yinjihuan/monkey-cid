@@ -13,4 +13,5 @@ public class PublishProjectParam {
 	private String gitUrl;
 	private List<String> publishMachineList;
 	private String jarPath;
+	private String deployScript;
 }

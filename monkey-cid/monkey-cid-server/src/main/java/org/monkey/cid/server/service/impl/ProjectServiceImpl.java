@@ -6,17 +6,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.monkey.cid.core.base.ResponseCode;
 import org.monkey.cid.core.base.ResponseData;
 import org.monkey.cid.core.exception.GlobalException;
 import org.monkey.cid.core.exception.ServerException;
 import org.monkey.cid.core.util.LinuxCommandUtil;
+import org.monkey.cid.server.dto.PublishProjectDto;
+import org.monkey.cid.server.param.DeployParam;
 import org.monkey.cid.server.param.PublishProjectParam;
 import org.monkey.cid.server.po.Machine;
 import org.monkey.cid.server.po.Project;
+import org.monkey.cid.server.po.PublishHistory;
 import org.monkey.cid.server.service.MachineService;
 import org.monkey.cid.server.service.ProjectService;
+import org.monkey.cid.server.service.PublishHistoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +49,9 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 	@Autowired
 	private MachineService machineService;
 	
+	@Autowired
+	private PublishHistoryService publishHistoryService;
+	
 	public List<Project> queryProjectList(int start, int limit) {
 		return super.listForPage(start, limit);
 	}
@@ -59,25 +67,46 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 
 	@Override
 	public void updateProject(Project project) {
-		super.updateByContainsFields(project, "id", new String[] { "name", "chinese_name", "git_url", "update_time" });
+		super.updateByContainsFields(project, "id", new String[] { "name", "chinese_name", "git_url", "update_time", "build_script" });
 	}
 
-	@Async
 	@Override
-	public void publishProject(PublishProjectParam param) {
-		Project project = this.getById("id", param.getProjectId());
-		param.setBuildScript(project.getBuildScript());
-		param.setGitUrl(project.getGitUrl());
-		this.buildProject(param);
-		this.deployProject();
+	public PublishProjectDto publishProject(PublishProjectParam param) {
+		PublishProjectDto dto = new PublishProjectDto();
+		
+		PublishHistory history = new PublishHistory();
+		history.setBranch(param.getPublishBranch());
+		history.setDeployScript(param.getDeployScript());
+		history.setJarPath(param.getJarPath());
+		history.setProjectId(Long.parseLong(param.getProjectId()));
+		history.setPublishTime(new Date());
+		history.setPublishMachines(param.getPublishMachineList().stream().collect(Collectors.joining(",")));
+		
+		try {
+			Project project = this.getById("id", param.getProjectId());
+			param.setBuildScript(project.getBuildScript());
+			param.setGitUrl(project.getGitUrl());
+			this.buildProject(param);
+		} catch (Exception e) {
+			logger.error("发布异常", e);
+			dto.setResult(1);
+			dto.setMsg(e.getMessage());
+			history.setPublishResult(1);
+			history.setErrorMsg(e.getMessage());
+		} finally {
+			publishHistoryService.save(history);
+		}
+		return dto;
 	}
 	
-	private void deployProject() {
-		ResponseData resp = restTemplate.postForObject("http://192.168.0.222:3101/notice/deploy", null, ResponseData.class);
+	private void deployProject(Machine machine, PublishProjectParam param) {
+		DeployParam deployParam = new DeployParam();
+		deployParam.setDeployScript(param.getDeployScript());
+		ResponseData resp = restTemplate.postForObject(machine.getClientUrl()+"/notice/deploy", deployParam, ResponseData.class);
 		System.out.println("deployProject:" + resp.getCode());  
 	}
 	
-	private void buildProject(PublishProjectParam param) {
+	private void buildProject(PublishProjectParam param) throws Exception {
 		//String command = "/home/goojia/build/build_fangjia_youfang_service.sh master";
 		StringBuilder command = new StringBuilder();
 		command.append(param.getBuildScript());
@@ -97,13 +126,14 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 	
 		try {
 			LinuxCommandUtil.exec(command.toString(), logsQueueMap.get(queueKey));
-			param.getPublishMachineList().forEach(id -> {
-				Machine machine = machineService.get(Long.parseLong(id));
+			List<String> machineList = param.getPublishMachineList();
+			for (String machineId : machineList) {
+				Machine machine = machineService.get(Long.parseLong(machineId));
 				if (machine == null) {
-					throw new GlobalException("机器不存在：" + id, ResponseCode.SERVER_ERROR_CODE);
+					throw new GlobalException("机器不存在：" + machineId, ResponseCode.SERVER_ERROR_CODE);
 				}
 				doBuildProject(machine, param);
-			});
+			}
 		} catch (Exception e) {
 			logger.error("项目部署异常", e);
 			throw new ServerException(e.getMessage());
@@ -111,7 +141,7 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private void doBuildProject(Machine machine, PublishProjectParam param) {
+	private void doBuildProject(Machine machine, PublishProjectParam param)  throws Exception {
 		//String jarPath = "/home/goojia/build/viewstore/master.fangjia-youfang-service/fangjia-youfang-service/fangjia-youfang-service/target/fangjia-youfang-service-1.0.0.jar";
 		//String fileFolder = "/home/goojia/publish/master/fangjia-youfang-service/2019-12-12";
 		//String fileName = "fangjia-youfang-service-1.0.0.jar";
@@ -125,18 +155,21 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		uploadParam.add("fileFolder", fileFolder);  
 		uploadParam.add("fileName", fileName);
 		
+		String uploadUrl = machine.getClientUrl() + "/file/upload";
 		logger.info("client url: {}", machine.getClientUrl());
 		logger.info("jarPath： {}", jarPath);
 		logger.info("fileName： {}", fileName);
 		logger.info("fileFolder： {}", fileFolder);
-		ResponseData resp = restTemplate.postForObject(machine.getClientUrl(), uploadParam, ResponseData.class);
+		logger.info("uploadUrl： {}", uploadUrl);
+		ResponseData resp = restTemplate.postForObject(uploadUrl, uploadParam, ResponseData.class);
 		if (resp.getCode() != 200) {
 			throw new ServerException(resp.getMessage());
 		}
 		logger.info("上传成功");
+		this.deployProject(machine, param);
 	}
 	
-	private String getProjectPublishCatalog(String publishCatalog, String branch, String projectName) {
+	private String getProjectPublishCatalog(String publishCatalog, String branch, String projectName)  throws Exception {
 		StringBuilder path = new StringBuilder();
 		path.append(publishCatalog);
 		path.append("/");

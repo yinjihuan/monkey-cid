@@ -21,4 +21,6 @@ public class ProjectDto {
 	
 	private List<String> publishInstances;
 	
+	private String buildScript;
+	
 }

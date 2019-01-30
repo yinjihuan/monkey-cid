@@ -118,11 +118,14 @@
 				    <el-form-item label="发布项目" label-width="140px">
 				      {{publishForm.publishProjectName}}
 				    </el-form-item>
-				    <el-form-item label="编译后的程序路径" label-width="140px" prop="jarPath" style="width:800px">
+				    <el-form-item label="编译后的程序路径" label-width="140px" prop="jarPath" style="width:1100px">
 					    <el-input v-model="publishForm.jarPath" placeholder="示例：/home/goojia/viewstore/district-service/district-service-1.0.jar"></el-input>
 					</el-form-item>
+					<el-form-item label="启动脚本" label-width="140px" prop="deployScript" style="width:1100px">
+					    <el-input v-model="publishForm.deployScript" placeholder="示例：/home/goojia/deploy.sh"></el-input>
+					</el-form-item>
 				    <el-form-item label="发布分支" label-width="140px"  prop="publishBranch">
-				      <el-select v-model="publishForm.publishBranch" filterable placeholder="请选择"  style="width:400px">
+				      <el-select v-model="publishForm.publishBranch" filterable placeholder="请选择"  style="width:960px">
 					    <el-option
 					      v-for="item in publishForm.publishBranchList"
 					      :key="item.value"
@@ -133,7 +136,7 @@
 				    </el-form-item>
 				    
 				    <el-form-item label="发布机器" label-width="140px" prop="publishMachineList">
-				      <el-select v-model="publishForm.publishMachineList" filterable placeholder="请选择" multiple style="width:400px" >
+				      <el-select v-model="publishForm.publishMachineList" filterable placeholder="请选择" multiple style="width:960px" >
 					    <el-option
 					      v-for="item in publishForm.machineList"
 					      :key="item.value"
@@ -143,6 +146,10 @@
 					  </el-select>
 				    </el-form-item>
 				    
+				    <el-form-item label="发布描述" label-width="140px" style="width:1100px">
+					    <el-input v-model="publishForm.describe" ></el-input>
+					</el-form-item>
+					
 				    <el-form-item label="实时日志" label-width="140px">
 				      <div style="height:500px;border:0px solid red;overflow-x:auto;overflow-y:auto;">
 				      	<pre  v-for="item in logs" >{{item}}</pre>
@@ -175,7 +182,8 @@
             	publishMachineList:[],
             	machineList:[],
             	jarPath:'',
-            	projectId: ''
+            	projectId: '',
+            	deployScript: ''
             },
             addForm: {
             	id: '',
@@ -193,7 +201,8 @@
             publishFormRules: {
               publishBranch: [{ required: true, message: '请选择分支', trigger: 'blur' }],
               publishMachineList: [{ required: true, message: '请选择机器', trigger: 'blur' }],
-              jarPath: [{ required: true, message: '请输入编译后的程序文件路径', trigger: 'blur' }]
+              jarPath: [{ required: true, message: '请输入编译后的程序文件路径', trigger: 'blur' }],
+              deployScript: [{ required: true, message: '请输入启动脚本', trigger: 'blur' }]
             },
             dialogTitle: "新增项目",
             handleDataUri: "/rest/project/add",
@@ -211,8 +220,8 @@
     	showDialogPublishForm: function(data) {
     		var that = this;
     		that.publishForm.projectId = data.id;
-    		this.publishForm.publishProjectName = data.name;
-    		this.dialogPublishFormVisible = true;
+    		that.publishForm.publishProjectName = data.name;
+    		that.dialogPublishFormVisible = true;
     		that.publishForm.publishBranchList = [];
     		var branchList = data.branchs.split(',');
     		that.publishForm.publishBranchList.push({value: 'master', label: 'master' });
@@ -220,6 +229,7 @@
     			var value = branchList[i];
     			that.publishForm.publishBranchList.push({value: value, label: value });
     		}
+    		that.getLatelyPublishHistory();
     	},
     	showDialogBranchForm: function(data) {
     		this.dialogBranchFormVisible = true;
@@ -387,6 +397,33 @@
 		        	that.$message.error("网络异常");
 		        }
         	});
+    	},
+    	// 获取项目最近的发布历史
+    	getLatelyPublishHistory: function() {
+    		var that = this;
+    		axios.get('/rest/publishHistory/lately', {
+    		    params: {
+    		    	projectId: that.publishForm.projectId
+    		    }
+    		})
+   		    .then(function (response) {
+   		    	if (response.data.code == 200) {
+   		    		var history = response.data.data;
+   		    		that.publishForm.jarPath = history.jarPath;
+   		    		that.publishForm.deployScript = history.deployScript;
+   		    		that.publishForm.publishBranch = history.branch;
+   		    		that.publishForm.publishMachineList = history.publishMachines.split(',');
+   		    	} else {
+   		    		that.$message.error(response.data.message);
+   		    	}
+   		    })
+   		    .catch(function (error) {
+   		    	if (error.response) {
+   		     	    that.$message.error(error.response.data.message);
+   		        } else {
+   		        	that.$message.error("网络异常");
+   		        }
+   		    });
     	}
     }
   })
