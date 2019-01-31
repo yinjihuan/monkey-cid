@@ -23,4 +23,6 @@ public class ProjectDto {
 	
 	private String buildScript;
 	
+	private String dingToken;
+	
 }

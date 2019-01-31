@@ -12,6 +12,7 @@ import org.monkey.cid.core.base.ResponseCode;
 import org.monkey.cid.core.base.ResponseData;
 import org.monkey.cid.core.exception.GlobalException;
 import org.monkey.cid.core.exception.ServerException;
+import org.monkey.cid.core.util.DingDingMessageUtil;
 import org.monkey.cid.core.util.LinuxCommandUtil;
 import org.monkey.cid.server.dto.PublishProjectDto;
 import org.monkey.cid.server.param.DeployParam;
@@ -70,13 +71,13 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 
 	@Override
 	public void updateProject(Project project) {
-		super.updateByContainsFields(project, "id", new String[] { "name", "chinese_name", "git_url", "update_time", "build_script" });
+		super.updateByContainsFields(project, "id", new String[] { "name", "chinese_name", "git_url", "update_time", "build_script", "ding_token" });
 	}
 
 	@Override
 	public PublishProjectDto publishProject(PublishProjectParam param) {
 		PublishProjectDto dto = new PublishProjectDto();
-		
+		Project project = null;
 		PublishHistory history = new PublishHistory();
 		history.setBranch(param.getPublishBranch());
 		history.setDeployScript(param.getDeployScript());
@@ -84,11 +85,15 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		history.setProjectId(Long.parseLong(param.getProjectId()));
 		history.setPublishTime(new Date());
 		history.setPublishMachines(param.getPublishMachineList().stream().collect(Collectors.joining(",")));
-		
+		history.setPublishDescribe(param.getPublishDescribe());
 		try {
-			Project project = this.getById("id", param.getProjectId());
+			project = this.getById("id", param.getProjectId());
 			param.setBuildScript(project.getBuildScript());
 			param.setGitUrl(project.getGitUrl());
+			if (StringUtils.hasText(project.getDingToken())) {
+				String msg = "【%s】%s 开始发布";
+				DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName()), project.getDingToken());
+			}
 			this.buildProject(param);
 		} catch (Exception e) {
 			logger.error("发布异常", e);
@@ -98,6 +103,15 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 			history.setErrorMsg(e.getMessage());
 		} finally {
 			publishHistoryService.save(history);
+			if (StringUtils.hasText(project.getDingToken())) {
+				if (history.getPublishResult() == 1) {
+					String msg = "【%s】%s 发布失败，异常信息：%s";
+					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName(), history.getErrorMsg()), project.getDingToken());
+				} else {
+					String msg = "【%s】%s 发布成功。";
+					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName()), project.getDingToken());
+				}
+			}
 		}
 		return dto;
 	}

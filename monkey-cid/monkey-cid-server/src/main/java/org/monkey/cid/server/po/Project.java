@@ -36,4 +36,8 @@ public class Project {
 	
 	@Field(value = "build_script", desc = "编译脚本")
 	private String buildScript;
+	
+	@Field(value = "ding_token", desc = "钉钉机器人Token")
+	private String dingToken;
+	
 }

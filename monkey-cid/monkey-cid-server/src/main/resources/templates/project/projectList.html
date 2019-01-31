@@ -134,6 +134,9 @@
 					 <el-form-item label="编译脚本" label-width="120px" prop="buildScript">
 					    <el-input v-model="addForm.buildScript" placeholder="示例：/home/goojia/build.sh"></el-input>
 					 </el-form-item>
+					 <el-form-item label="钉钉Token" label-width="120px">
+					    <el-input v-model="addForm.dingToken"></el-input>
+					 </el-form-item>
 				  </el-form>
 				  <div slot="footer" class="dialog-footer">
 				    <el-button @click="dialogAddFormVisible = false">取 消</el-button>
@@ -192,7 +195,7 @@
 				    </el-form-item>
 				    
 				    <el-form-item label="发布描述" label-width="140px" style="width:1100px">
-					    <el-input v-model="publishForm.describe" ></el-input>
+					    <el-input v-model="publishForm.publishDescribe" ></el-input>
 					</el-form-item>
 					
 					<el-form-item label="执行状态" label-width="140px" class="red">
@@ -238,14 +241,16 @@
             	machineList:[],
             	jarPath:'',
             	projectId: '',
-            	deployScript: ''
+            	deployScript: '',
+            	publishDescribe: ''
             },
             addForm: {
             	id: '',
             	name: '',
             	chineseName: '',
             	gitUrl: '',
-            	buildScript: ''
+            	buildScript: '',
+            	dingToken: ''
             },
             addFormRules: {
            	  name: [{ required: true, message: '请输入项目名', trigger: 'blur' }],

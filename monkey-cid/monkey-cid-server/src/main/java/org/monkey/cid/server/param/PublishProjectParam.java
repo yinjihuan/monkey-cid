@@ -14,4 +14,5 @@ public class PublishProjectParam {
 	private List<String> publishMachineList;
 	private String jarPath;
 	private String deployScript;
+	private String publishDescribe;
 }

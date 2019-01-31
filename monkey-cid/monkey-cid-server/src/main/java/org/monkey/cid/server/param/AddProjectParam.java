@@ -15,4 +15,6 @@ public class AddProjectParam {
 	
 	private String buildScript;
 	
+	private String dingToken;
+	
 }
