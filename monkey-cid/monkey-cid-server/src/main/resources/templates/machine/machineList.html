@@ -67,6 +67,16 @@
 					 <el-form-item label="部署目录" label-width="120px" prop="publishCatalog">
 					    <el-input v-model="addForm.publishCatalog"></el-input>
 					 </el-form-item>
+					 <el-form-item label="所属环境" label-width="120px" prop="environment">
+					    <el-select v-model="addForm.environment" placeholder="请选择">
+						    <el-option
+						      v-for="item in environmentList"
+						      :key="item.value"
+						      :label="item.label"
+						      :value="item.value">
+						    </el-option>
+						</el-select>
+					 </el-form-item>
 				  </el-form>
 				  <div slot="footer" class="dialog-footer">
 				    <el-button @click="dialogAddFormVisible = false">取 消</el-button>
@@ -90,15 +100,29 @@
             	intranetIp: '',
             	extranetIp: '',
             	clientUrl: '',
-            	publishCatalog: ''
+            	publishCatalog: '',
+            	environment: ''
             },
             addFormRules: {
               intranetIp: [{ required: true, message: '请输入内网IP', trigger: 'blur' }],
               clientUrl: [{ required: true, message: '请输入CID Client地址', trigger: 'blur' }],
-              publishCatalog: [{ required: true, message: '请输入发布目录', trigger: 'blur' }]
+              publishCatalog: [{ required: true, message: '请输入发布目录', trigger: 'blur' }],
+              environment: [{ required: true, message: '请选择所属环境', trigger: 'blur' }],
             },
             dialogTitle: "新增机器",
-            handleDataUri: "/rest/machine/add"
+            handleDataUri: "/rest/machine/add",
+            environmentList: [{
+                value: '测试环境',
+                label: '测试环境'
+              },
+              {
+                  value: '线上测试环境',
+                  label: '线上测试环境'
+              },
+              {
+                  value: '线上环境',
+                  label: '线上环境'
+              }]
         }
     },
     mounted: function() {

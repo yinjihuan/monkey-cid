@@ -15,4 +15,6 @@ public class MachineDto {
 	
 	private String publishCatalog;
 	
+	private String environment;
+	
 }

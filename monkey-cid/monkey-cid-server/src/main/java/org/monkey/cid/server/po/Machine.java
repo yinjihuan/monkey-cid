@@ -28,6 +28,9 @@ public class Machine {
 	@Field(value = "publish_catalog", desc = "发布目录")
 	private String publishCatalog;
 	
+	@Field(value = "environment", desc = "所属环境")
+	private String environment;
+	
 	@Field(value = "add_time", desc = "添加时间")
 	private Date addTime;
 	

@@ -104,12 +104,23 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		} finally {
 			publishHistoryService.save(history);
 			if (StringUtils.hasText(project.getDingToken())) {
+				StringBuilder noticeMsg = new StringBuilder();
+				noticeMsg.append("发布节点：");
+				List<String> machineList = param.getPublishMachineList();
+				for (String machineId : machineList) {
+					Machine machine = machineService.get(Long.parseLong(machineId));
+					noticeMsg.append("【");
+					noticeMsg.append(machine.getEnvironment());
+					noticeMsg.append(" ");
+					noticeMsg.append(machine.getClientUrl());
+					noticeMsg.append("】");
+				}
 				if (history.getPublishResult() == 1) {
-					String msg = "【%s】%s 发布失败，异常信息：%s";
-					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName(), history.getErrorMsg()), project.getDingToken());
+					String msg = "【%s】%s 发布失败，异常信息：%s。%s";
+					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName(), history.getErrorMsg(), noticeMsg.toString()), project.getDingToken());
 				} else {
-					String msg = "【%s】%s 发布成功。";
-					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName()), project.getDingToken());
+					String msg = "【%s】%s 发布成功。%s";
+					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName(), noticeMsg.toString()), project.getDingToken());
 				}
 			}
 		}

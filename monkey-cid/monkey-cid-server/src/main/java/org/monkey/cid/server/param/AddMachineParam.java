@@ -15,4 +15,6 @@ public class AddMachineParam {
 	
 	private String publishCatalog;
 	
+	private String environment;
+	
 }

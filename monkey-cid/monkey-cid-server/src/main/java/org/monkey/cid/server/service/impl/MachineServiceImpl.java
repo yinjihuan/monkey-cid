@@ -29,7 +29,7 @@ public class MachineServiceImpl extends EntityService<Machine> implements Machin
 	@Override
 	public void updateMachine(Machine machine) {
 		super.updateByContainsFields(machine, "id", 
-				new String[] { "intranet_ip", "extranet_ip", "client_url", "publish_catalog", "update_time" });
+				new String[] { "intranet_ip", "extranet_ip", "client_url", "publish_catalog", "update_time", "environment" });
 	}
 
 	@Override
