@@ -75,8 +75,8 @@ public class ProjectController {
 	}
 	
 	@GetMapping("/project/publish/logs")
-	public ResponseData<List<String>> queryPublishLogs() {
-		return Response.ok(projectService.queryPublishLogs());
+	public ResponseData<List<String>> queryPublishLogs(String projectName, String branch) {
+		return Response.ok(projectService.queryPublishLogs(projectName, branch));
 	}
 	
 	@PostMapping("/project/branch")

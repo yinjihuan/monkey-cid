@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>项目管理</title>
+  <style type="text/css">
+  	.red {
+  		color: red;
+  		font-size: 20px;
+  		font-weight: bold;
+  	}
+  </style>
 </head>
 <body>
     <div class="wrapper">
@@ -13,10 +20,10 @@
 	     	 <el-table :data="tableData" style="width: 100%">
 			    <el-table-column
 			      label="项目名"
-			      width="220">
+			      width="240">
 			      <template slot-scope="scope">
 			        <i></i>
-			        <span style="margin-left: 10px">{{ scope.row.name }}</span>
+			        {{ scope.row.name }}
 			      </template>
 			    </el-table-column>
 			    <el-table-column
@@ -24,36 +31,15 @@
 			      width="220">
 			      <template slot-scope="scope">
 			        <i></i>
-			        <span style="margin-left: 10px">{{ scope.row.chineseName }}</span>
+			        {{ scope.row.chineseName }}
 			      </template>
 			    </el-table-column>
 			    <el-table-column
 			      label="Git地址"
-			      width="400">
+			      width="500">
 			      <template slot-scope="scope">
 			        <i></i>
-			        <span style="margin-left: 10px">{{ scope.row.gitUrl }}</span>
-			      </template>
-			    </el-table-column>
-			    <el-table-column
-			      label="最新发布时间"
-			      width="200">
-			      <template slot-scope="scope">
-			        <i></i>
-			        <span style="margin-left: 10px">{{ scope.row.pushTime }}</span>
-			      </template>
-			    </el-table-column>
-			    <el-table-column
-			      label="运行实例"
-			      width="100">
-			      <template slot-scope="scope">
-			        <el-popover trigger="hover" placement="top">
-			          <p>111.11.11.11:8080</p>
-			          <p>111.11.11.11:8080</p>
-			          <div slot="reference" class="name-wrapper">
-			            <el-tag size="medium">2</el-tag>
-			          </div>
-			        </el-popover>
+			        {{ scope.row.gitUrl }}
 			      </template>
 			    </el-table-column>
 			    <el-table-column label="操作">
@@ -69,12 +55,72 @@
 			          @click="showDialogBranchForm(scope.row)">分支</el-button>
 			        <el-button
 			          size="mini"
-			          @click="showDialogBranchForm(scope.row)">发布历史</el-button>
+			          @click="showDialogPublishHistory(scope.row)">发布历史</el-button>
 			      </template>
 			    </el-table-column>
 			  </el-table>
 			  
-			  
+			  <el-dialog title="发布历史" :visible.sync="dialogPublishHistoryVisible" center fullscreen>
+				  <el-table :data="publishHistoryData">
+				    <el-table-column property="date" label="分支" width="150">
+				    	<template slot-scope="scope">
+					        {{ scope.row.branch }}
+					    </template>
+				    </el-table-column>
+				    <el-table-column property="name" label="发布时间" width="200">
+				    	<template slot-scope="scope">
+					        {{ scope.row.publishTimeText }}
+					    </template>
+				    </el-table-column>
+				    <el-table-column property="name" label="发布人" width="200">
+				    	<template slot-scope="scope">
+					        尹吉欢
+					    </template>
+				    </el-table-column>
+				    <el-table-column property="address" label="发布结果" width="200">
+				    	 <template slot-scope="scope">
+					        <el-popover trigger="hover" placement="top">
+					          <p>111.11.11.11:8080</p>
+					          <p>111.11.11.11:8080</p>
+					          <div slot="reference" class="name-wrapper">
+					            <el-tag size="medium"> {{ scope.row.publishResultText }}</el-tag>
+					          </div>
+					        </el-popover>
+					      </template>
+				    </el-table-column>
+				    <el-table-column property="address" label="发布机器" width="200">
+				    	 <template slot-scope="scope">
+					        <el-popover trigger="hover" placement="top">
+					          <p>111.11.11.11:8080</p>
+					          <p>111.11.11.11:8080</p>
+					          <div slot="reference" class="name-wrapper">
+					            <el-tag size="medium">5台</el-tag>
+					          </div>
+					        </el-popover>
+					      </template>
+				    </el-table-column>
+				    <el-table-column property="address" label="发布描述">
+				    	<template slot-scope="scope">
+					        {{ scope.row.describe }}
+					    </template>
+				    </el-table-column>
+				    <el-table-column label="操作">
+				      <template slot-scope="scope">
+				      	<el-button
+				          size="mini"
+				          @click="showDialogPublishForm(scope.row)">回滚</el-button>
+				      </template>
+				    </el-table-column>
+				  </el-table>
+				  <div slot="footer" class="dialog-footer">
+					  <el-pagination
+						  background
+						  layout="prev, pager, next"
+						  :total="1000">
+						</el-pagination>
+				  </div>
+			  </el-dialog>
+  
 			  <el-dialog :title="dialogTitle" :visible.sync="dialogAddFormVisible" center>
 				  <el-form :model="addForm" :rules="addFormRules" ref="addForm">
 				     <el-form-item label="项目名" label-width="120px" prop="name">
@@ -150,16 +196,22 @@
 					    <el-input v-model="publishForm.describe" ></el-input>
 					</el-form-item>
 					
+					<el-form-item label="执行状态" label-width="140px" class="red">
+				      <el-tag type="danger" v-for="item in executeStatus">
+				      	{{item}}
+				      </el-tag>
+				    </el-form-item>
+				    
 				    <el-form-item label="实时日志" label-width="140px">
 				      <div style="height:500px;border:0px solid red;overflow-x:auto;overflow-y:auto;">
-				      	<pre  v-for="item in logs" >{{item}}</pre>
+				      	<pre v-for="item in logs" :class="item.indexOf('error')>= 0 || item.indexOf('Exception') >= 0 ? 'red' : ''">{{item}}</pre>
 				      </div>
 				    </el-form-item>
 				    
 				  </el-form>
 				  <div slot="footer" class="dialog-footer">
 				    <el-button @click="dialogPublishFormVisible = false">取 消</el-button>
-				    <el-button type="primary" @click="publishProject">确 定</el-button>
+				    <el-button type="primary" @click="publishProject" :loading="publishProjectBtnLoading">确 定</el-button>
 				  </div>
 			   </el-dialog>
 	    </div>
@@ -170,11 +222,14 @@
     el: '#app',
     data: function() {
     	return {
+    		publishProjectBtnLoading: false,
     		page: 1,
             tableData: [],
+            publishHistoryData: [{"branch":"master","publishTimeText":"2019-11-11 12:12:12", "publishResultText":"成功", "describe":"发布xxx等功能"}],
             dialogPublishFormVisible: false,
             dialogAddFormVisible: false,
             dialogBranchFormVisible: false,
+            dialogPublishHistoryVisible: false,
             publishForm: {
             	publishProjectName:'',
                 publishBranch:'',
@@ -207,6 +262,7 @@
             dialogTitle: "新增项目",
             handleDataUri: "/rest/project/add",
             logs: [],
+            executeStatus: [],
             branchs: '',
             opId: ''
         }
@@ -223,13 +279,18 @@
     		that.publishForm.publishProjectName = data.name;
     		that.dialogPublishFormVisible = true;
     		that.publishForm.publishBranchList = [];
-    		var branchList = data.branchs.split(',');
     		that.publishForm.publishBranchList.push({value: 'master', label: 'master' });
-    		for(var i = 0;i < branchList.length; i++) {
-    			var value = branchList[i];
-    			that.publishForm.publishBranchList.push({value: value, label: value });
+    		if (data.branchs != "" && data.branchs != null) {
+    			var branchList = data.branchs.split(',');
+        		for(var i = 0;i < branchList.length; i++) {
+        			var value = branchList[i];
+        			that.publishForm.publishBranchList.push({value: value, label: value });
+        		}
     		}
     		that.getLatelyPublishHistory();
+    	},
+    	showDialogPublishHistory: function(data) {
+    		this.dialogPublishHistoryVisible = true;
     	},
     	showDialogBranchForm: function(data) {
     		this.dialogBranchFormVisible = true;
@@ -302,27 +363,36 @@
     	},
     	publishProject: function () {
     		var that = this;
+    		that.publishProjectBtnLoading = true;
     		that.$refs['publishForm'].validate((valid) => {
    	           if (valid) {
+   	        	  var logsInterval = setInterval(function(){
+    	    		  that.queryPublishLogs();
+    	    	  },1000);
    	        	   axios.post('/rest/project/publish', that.publishForm)
 	           	   .then(function (response) {
 	           	      if (response.data.code == 200) {
-	           	    	  alert();
-	           	    	  //that.dialogPublishFormVisible = false;
-	           	    	  var logsInterval = setInterval(function(){
-	           	    		  that.queryPublishLogs();
-	           	    	  },1000);
+	           	    	  var d = response.data.data;
+	           	    	  if (d.result == 0) {
+	           	    		 that.$message({ message: '操作成功', type: 'success' });
+	           	    	  } else {
+	           	    	 	 that.$message.error(d.msg);
+	           	    	  }
+	           	    	  clearInterval(logsInterval);
 	           	      } else {
 	     		    	  that.$message.error(response.data.message);
 	     		      }
+	           	 	  that.publishProjectBtnLoading = false;
 	           	    })
 	          	   .catch(function (error) {
+	          		  that.publishProjectBtnLoading = false;
 	          		  if (error.response) {
   	   		     	      that.$message.error(error.response.data.message);
   	   		          } else {
   	   		        	  that.$message.error("网络异常");
   	   		          }
 	          	   });
+   	        	 
    	           } else {
    	             return false;
    	           }
@@ -333,16 +403,24 @@
     	   var that = this;
     	   axios.get('/rest/project/publish/logs', {
     		    params: {
-    		      
+    		       projectName: that.publishForm.publishProjectName,
+    		       branch: that.publishForm.publishBranch
     		    }
     	   })
            .then(function (response) {
         	    if (response.data.code == 200) {
         	    	var list = response.data.data;
+        	    	for (var i=0;i<list.length;i++) {
+        	    		var log = list[i];
+        	    		if (log != null && log != "" && log.indexOf(':ETAG:')>=0) {
+        	    			that.executeStatus.push(log.substring(6));
+        	    		}
+        	    	}
         	    	that.logs = that.logs.concat(list);
         	    }
            })
        	   .catch(function (error) {
+       		   console.log(error);
       		   if (error.response) {
       			  that.$message.error(error.response.data.message);
 	           } else {
@@ -409,10 +487,17 @@
    		    .then(function (response) {
    		    	if (response.data.code == 200) {
    		    		var history = response.data.data;
-   		    		that.publishForm.jarPath = history.jarPath;
-   		    		that.publishForm.deployScript = history.deployScript;
-   		    		that.publishForm.publishBranch = history.branch;
-   		    		that.publishForm.publishMachineList = history.publishMachines.split(',');
+   		    		if (history != null) {
+   		    			that.publishForm.jarPath = history.jarPath;
+   	   		    		that.publishForm.deployScript = history.deployScript;
+   	   		    		that.publishForm.publishBranch = history.branch;
+   	   		    		that.publishForm.publishMachineList = history.publishMachines.split(',');
+   		    		} else {
+   		    			that.publishForm.jarPath = '';
+   	   		    		that.publishForm.deployScript = '';
+   	   		    		that.publishForm.publishBranch = '';
+   	   		    		that.publishForm.publishMachineList = [];
+   		    		}
    		    	} else {
    		    		that.$message.error(response.data.message);
    		    	}

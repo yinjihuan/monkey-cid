@@ -43,6 +43,9 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 	
 	private ConcurrentHashMap<String, ArrayBlockingQueue<String>> logsQueueMap = new ConcurrentHashMap<>();
 	
+	private ConcurrentHashMap<String, List<String>> logsMachineUrlMap = new ConcurrentHashMap<>();
+	
+	private final String MSG_TAG = ":ETAG:";
 	@Autowired
 	private RestTemplate restTemplate;
 	
@@ -99,9 +102,14 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		return dto;
 	}
 	
-	private void deployProject(Machine machine, PublishProjectParam param) {
+	private void deployProject(Machine machine, PublishProjectParam param, String logFile) {
 		DeployParam deployParam = new DeployParam();
 		deployParam.setDeployScript(param.getDeployScript());
+		deployParam.setBranch(param.getPublishBranch());
+		deployParam.setProjectName(param.getPublishProjectName());
+		deployParam.setLogFile(logFile);
+		String queueKey = param.getPublishProjectName() + param.getPublishBranch();
+		logsQueueMap.get(queueKey).add(MSG_TAG+"开始部署项目");
 		ResponseData resp = restTemplate.postForObject(machine.getClientUrl()+"/notice/deploy", deployParam, ResponseData.class);
 		System.out.println("deployProject:" + resp.getCode());  
 	}
@@ -123,20 +131,25 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 			ArrayBlockingQueue<String> queue = new ArrayBlockingQueue<String>(10000);
 			logsQueueMap.put(queueKey, queue);
 		}
-	
-		try {
-			LinuxCommandUtil.exec(command.toString(), logsQueueMap.get(queueKey));
-			List<String> machineList = param.getPublishMachineList();
-			for (String machineId : machineList) {
-				Machine machine = machineService.get(Long.parseLong(machineId));
-				if (machine == null) {
-					throw new GlobalException("机器不存在：" + machineId, ResponseCode.SERVER_ERROR_CODE);
-				}
-				doBuildProject(machine, param);
+		logsQueueMap.get(queueKey).add(MSG_TAG+"开始编译代码");
+		LinuxCommandUtil.exec(command.toString(), logsQueueMap.get(queueKey));
+		logsQueueMap.get(queueKey).add(MSG_TAG+"编译成功");
+		List<String> machineList = param.getPublishMachineList();
+		for (String machineId : machineList) {
+			Machine machine = machineService.get(Long.parseLong(machineId));
+			if (machine == null) {
+				throw new GlobalException("机器不存在：" + machineId, ResponseCode.SERVER_ERROR_CODE);
 			}
-		} catch (Exception e) {
-			logger.error("项目部署异常", e);
-			throw new ServerException(e.getMessage());
+			if (!logsMachineUrlMap.containsKey(queueKey)) {
+				List<String> urlList = new ArrayList<String>();
+				urlList.add(machine.getClientUrl());
+				logsMachineUrlMap.put(queueKey, urlList);
+			} else {
+				List<String> urlList = logsMachineUrlMap.get(queueKey);
+				urlList.add(machine.getClientUrl());
+				logsMachineUrlMap.put(queueKey, urlList);
+			}
+			doBuildProject(machine, param);
 		}
 	}
 	
@@ -161,12 +174,18 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		logger.info("fileName： {}", fileName);
 		logger.info("fileFolder： {}", fileFolder);
 		logger.info("uploadUrl： {}", uploadUrl);
+		String queueKey = param.getPublishProjectName() + param.getPublishBranch();
+		logsQueueMap.get(queueKey).add(MSG_TAG+"开始分发代码到" + machine.getClientUrl());
 		ResponseData resp = restTemplate.postForObject(uploadUrl, uploadParam, ResponseData.class);
 		if (resp.getCode() != 200) {
 			throw new ServerException(resp.getMessage());
 		}
 		logger.info("上传成功");
-		this.deployProject(machine, param);
+		logsQueueMap.get(queueKey).add(MSG_TAG+"代码上传成功");
+		String deployScript = param.getDeployScript() + " " + fileName + " " + fileFolder + "/" + fileName;
+		String logFile = "/home/goojia/logs/" + fileName + ".log";
+		param.setDeployScript(deployScript);
+		this.deployProject(machine, param, logFile);
 	}
 	
 	private String getProjectPublishCatalog(String publishCatalog, String branch, String projectName)  throws Exception {
@@ -177,20 +196,32 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		path.append("/");
 		path.append(projectName);
 		path.append("/");
-		String time = DateUtils.date2Str(new Date(), "yyyy-MM-dd.HH:mm:ss");
+		String time = DateUtils.date2Str(new Date(), "yyyyMMddHHmmss");
 		path.append(time);
 		return path.toString();
 	}
 	
 	@Override
-	public List<String> queryPublishLogs() {
+	public List<String> queryPublishLogs(String projectName, String branch) {
+		String queueKey = projectName + branch;
 		List<String> logs = new ArrayList<String>();
-		ArrayBlockingQueue<String> queue = logsQueueMap.get("yinjihuan");
+		ArrayBlockingQueue<String> queue = logsQueueMap.get(queueKey);
 		if (queue == null) return new ArrayList<>();
 		for (int i = 0; i < 100; i++) {
 			String log = queue.poll();
 			if (StringUtils.hasText(log)) {
-				logs.add(queue.poll());
+				logs.add(log);
+			}
+		}
+		logger.info("queryPublishLogs logs.size {}", logs.size());
+		if (logs.size() == 0 && logsMachineUrlMap.get(queueKey) != null) {
+			List<String> urlList = logsMachineUrlMap.get(queueKey);
+			for (String url : urlList) {
+				String getLogsUrl = url + "/logs?projectName=" + projectName + "&branch=" + branch;
+				logger.info("queryPublishLogs URL {}", getLogsUrl);
+				ResponseData response = restTemplate.getForObject(getLogsUrl, ResponseData.class);
+				List<String> list = (List<String>) response.getData();
+				logs.addAll(list);
 			}
 		}
 		return logs;

@@ -39,6 +39,6 @@ public interface ProjectService {
 	
 	PublishProjectDto publishProject(PublishProjectParam param);
 	
-	List<String> queryPublishLogs();
+	List<String> queryPublishLogs(String projectName, String branch);
 	
 }
