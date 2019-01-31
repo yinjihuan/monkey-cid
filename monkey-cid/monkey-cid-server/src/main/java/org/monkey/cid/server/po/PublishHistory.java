@@ -40,4 +40,7 @@ public class PublishHistory {
 	@Field(value = "deploy_script", desc = "启动脚本")
 	private String deployScript;
 	
+	@Field(value = "publish_describe", desc = "发布描述")
+	private String publishDescribe;
+	
 }

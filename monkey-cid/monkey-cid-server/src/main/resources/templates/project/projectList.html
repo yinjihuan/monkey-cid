@@ -80,10 +80,9 @@
 				    <el-table-column property="address" label="发布结果" width="200">
 				    	 <template slot-scope="scope">
 					        <el-popover trigger="hover" placement="top">
-					          <p>111.11.11.11:8080</p>
-					          <p>111.11.11.11:8080</p>
+					          <p>{{ scope.row.errorMsg }}</p>
 					          <div slot="reference" class="name-wrapper">
-					            <el-tag size="medium"> {{ scope.row.publishResultText }}</el-tag>
+					            <el-tag size="medium" :type="scope.row.publishResultText == '失败' ? 'danger' : ''"> {{ scope.row.publishResultText }}</el-tag>
 					          </div>
 					        </el-popover>
 					      </template>
@@ -91,32 +90,32 @@
 				    <el-table-column property="address" label="发布机器" width="200">
 				    	 <template slot-scope="scope">
 					        <el-popover trigger="hover" placement="top">
-					          <p>111.11.11.11:8080</p>
-					          <p>111.11.11.11:8080</p>
+					          <p v-for="m in scope.row.publishMachineList">{{m}}</p>
 					          <div slot="reference" class="name-wrapper">
-					            <el-tag size="medium">5台</el-tag>
+					            <el-tag size="medium">{{scope.row.publishMachineListCount}}台</el-tag>
 					          </div>
 					        </el-popover>
 					      </template>
 				    </el-table-column>
 				    <el-table-column property="address" label="发布描述">
 				    	<template slot-scope="scope">
-					        {{ scope.row.describe }}
+					        {{ scope.row.publishDescribe }}
 					    </template>
 				    </el-table-column>
 				    <el-table-column label="操作">
 				      <template slot-scope="scope">
-				      	<el-button
+				      	<el-button v-show="scope.row.publishResultText == '成功'"
 				          size="mini"
-				          @click="showDialogPublishForm(scope.row)">回滚</el-button>
+				          @click="showDialogPublishForm(scope.row)">回滚到该版本</el-button>
 				      </template>
 				    </el-table-column>
 				  </el-table>
 				  <div slot="footer" class="dialog-footer">
-					  <el-pagination
+					  <el-pagination @current-change="publishHistoryPageChange"
 						  background
 						  layout="prev, pager, next"
-						  :total="1000">
+						  :page-size="10"
+						  :total="publishHistoryDataTotal">
 						</el-pagination>
 				  </div>
 			  </el-dialog>
@@ -225,7 +224,8 @@
     		publishProjectBtnLoading: false,
     		page: 1,
             tableData: [],
-            publishHistoryData: [{"branch":"master","publishTimeText":"2019-11-11 12:12:12", "publishResultText":"成功", "describe":"发布xxx等功能"}],
+            publishHistoryData: [],
+            publishHistoryDataTotal: 0,
             dialogPublishFormVisible: false,
             dialogAddFormVisible: false,
             dialogBranchFormVisible: false,
@@ -291,6 +291,7 @@
     	},
     	showDialogPublishHistory: function(data) {
     		this.dialogPublishHistoryVisible = true;
+    		this.queryPublishHistoryList(data.id, 1)
     	},
     	showDialogBranchForm: function(data) {
     		this.dialogBranchFormVisible = true;
@@ -509,6 +510,33 @@
    		        	that.$message.error("网络异常");
    		        }
    		    });
+    	},
+    	queryPublishHistoryList: function(projectId, page) {
+    		var that = this;
+    		that.opId = projectId;
+     	    axios.get('/rest/publishHistory/list', {
+     		    params: {
+     		       projectId: projectId,
+     		       page: page
+     		    }
+     	    })
+            .then(function (response) {
+         	    if (response.data.code == 200) {
+         	    	var list = response.data.data.list;
+         	    	that.publishHistoryData = list;
+         	    	that.publishHistoryDataTotal = response.data.data.totalRecords;
+         	    }
+             })
+        	 .catch(function (error) {
+       		    if (error.response) {
+       			   that.$message.error(error.response.data.message);
+ 	            } else {
+ 	        	   that.$message.error("网络异常");
+ 	            }
+        	 });
+    	},
+    	publishHistoryPageChange: function(currentPage) {
+    		this.queryPublishHistoryList(this.opId, currentPage);
     	}
     }
   })

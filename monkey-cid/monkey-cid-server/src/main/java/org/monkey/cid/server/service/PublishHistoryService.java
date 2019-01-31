@@ -1,5 +1,7 @@
 package org.monkey.cid.server.service;
 
+import java.util.List;
+
 import org.monkey.cid.server.po.PublishHistory;
 
 public interface PublishHistoryService {
@@ -12,4 +14,8 @@ public interface PublishHistoryService {
 	 * @return
 	 */
 	PublishHistory getLatelyPublishHistory(Long projectId);
+	
+	long queryPublishHistoryCount(Long projectId);
+	
+	List<PublishHistory> queryPublishHistoryList(Long projectId, int start, int limit);
 }
