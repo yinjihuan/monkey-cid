@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.cxytiandi</groupId>
 	<artifactId>monkey-cid</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<description>编译发布平台</description>
 
@@ -17,7 +17,7 @@
 	<modules>
 		<module>monkey-cid-server</module>
 		<module>monkey-cid-client</module>
-    <module>monkey-cid-core</module>
+    	<module>monkey-cid-core</module>
   </modules>
 
 	<dependencies>

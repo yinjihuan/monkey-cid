@@ -13,4 +13,8 @@ public class DeployParam {
 	
 	private String branch;
 	
+	private String authorization;
+	
+	private String healthUrl;
+	
 }

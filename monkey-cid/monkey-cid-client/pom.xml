@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.cxytiandi</groupId>
 		<artifactId>monkey-cid</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>monkey-cid-client</artifactId>
 	<name>monkey-cid-client</name>
@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>com.cxytiandi</groupId>
 			<artifactId>monkey-cid-core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
 	

@@ -384,7 +384,10 @@
 	           	    	  } else {
 	           	    	 	 that.$message.error(d.msg);
 	           	    	  }
-	           	    	  clearInterval(logsInterval);
+	           	    	  setTimeout(function(){
+	           	    		clearInterval(logsInterval);
+	      	    	  	  },2000);
+	           	    	  
 	           	      } else {
 	     		    	  that.$message.error(response.data.message);
 	     		      }

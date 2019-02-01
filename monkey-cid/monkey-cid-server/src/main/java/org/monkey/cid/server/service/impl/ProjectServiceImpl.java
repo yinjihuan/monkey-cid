@@ -47,6 +47,7 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 	private ConcurrentHashMap<String, List<String>> logsMachineUrlMap = new ConcurrentHashMap<>();
 	
 	private final String MSG_TAG = ":ETAG:";
+	
 	@Autowired
 	private RestTemplate restTemplate;
 	
@@ -115,11 +116,14 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 					noticeMsg.append(machine.getClientUrl());
 					noticeMsg.append("】");
 				}
+				String queueKey = param.getPublishProjectName() + param.getPublishBranch();
 				if (history.getPublishResult() == 1) {
 					String msg = "【%s】%s 发布失败，异常信息：%s。%s";
+					logsQueueMap.get(queueKey).add(MSG_TAG+"发布失败");
 					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName(), history.getErrorMsg(), noticeMsg.toString()), project.getDingToken());
 				} else {
 					String msg = "【%s】%s 发布成功。%s";
+					logsQueueMap.get(queueKey).add(MSG_TAG+"发布成功");
 					DingDingMessageUtil.sendTextMessage(String.format(msg, project.getChineseName(), project.getName(), noticeMsg.toString()), project.getDingToken());
 				}
 			}
@@ -133,6 +137,8 @@ public class ProjectServiceImpl extends EntityService<Project> implements Projec
 		deployParam.setBranch(param.getPublishBranch());
 		deployParam.setProjectName(param.getPublishProjectName());
 		deployParam.setLogFile(logFile);
+		deployParam.setAuthorization("Basic Z29vamlhOmdvb2ppYTEyMzQ1Ng==");
+		deployParam.setHealthUrl("/actuator/health");
 		String queueKey = param.getPublishProjectName() + param.getPublishBranch();
 		logsQueueMap.get(queueKey).add(MSG_TAG+"开始部署项目");
 		ResponseData resp = restTemplate.postForObject(machine.getClientUrl()+"/notice/deploy", deployParam, ResponseData.class);

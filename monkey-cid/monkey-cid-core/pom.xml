@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.cxytiandi</groupId>
     <artifactId>monkey-cid</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
   </parent>
   <artifactId>monkey-cid-core</artifactId>
   <name>monkey-cid-core</name>
